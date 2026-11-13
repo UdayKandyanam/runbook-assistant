@@ -41,6 +41,19 @@ python -m runbook_assistant list
 python -m runbook_assistant ask "A pod is in CrashLoopBackOff and keeps restarting. What should I check first?"
 ```
 
+The `list` output for the bundled runbooks:
+
+```
+canary-deployment-checks.md: 5 sections (Canary deployment checks)
+crashloopbackoff.md: 5 sections (Pod CrashLoopBackOff triage)
+database-connection-saturation.md: 5 sections (Database connection saturation)
+expired-certificates.md: 5 sections (Expired certificates)
+node-disk-pressure.md: 4 sections (Node disk pressure)
+queue-backlog-triage.md: 5 sections (Queue backlog triage)
+rollback-deployment.md: 4 sections (Rolling back a bad deployment)
+7 runbooks, 33 sections indexed
+```
+
 Point it at your own runbooks with `--runbooks`:
 
 ```bash
@@ -140,22 +153,27 @@ the citation. The first `#` heading in a file is treated as the runbook
 title. Plain paragraphs, lists, and code blocks inside a section all stay
 part of that section.
 
-The bundled set in `runbooks/` covers pod CrashLoopBackOff triage, node
-disk pressure, expired certificates, rolling back a bad deployment, and
-database connection saturation. Swap in your own folder and the assistant
-answers from yours instead.
+The bundled set in `runbooks/` has seven runbooks: pod CrashLoopBackOff
+triage, node disk pressure, expired certificates, rolling back a bad
+deployment, database connection saturation, canary deployment checks, and
+queue backlog triage. Swap in your own folder and the assistant answers
+from yours instead.
 
 ## Optional: HTTP API
 
 There is a thin FastAPI adapter in `app.py` if you would rather call this
-over HTTP. The core package does not need it.
+over HTTP. The core package does not need it. The `serve` command starts
+it:
 
 ```bash
 pip install -e ".[api]"
-uvicorn app:app
+python -m runbook_assistant serve --port 8000
 curl localhost:8000/health
 curl -X POST localhost:8000/ask -H "Content-Type: application/json" -d '{"question": "How do I roll back a bad deployment?"}'
 ```
+
+Without the api extra installed, `serve` says so and exits instead of
+dumping a traceback. Serving `app:app` with uvicorn directly works too.
 
 Set `RUNBOOKS_DIR` to serve a different folder of runbooks.
 
@@ -190,8 +208,8 @@ a vague answer with a very precise citation.
 
 1. Synonym and abbreviation handling for common ops terms, so "OOM" finds
    the section that talks about memory limits.
-2. A `serve` command that watches the runbooks folder and re-indexes on
-   change, for teams that edit runbooks during an incident.
+2. A watch mode for `serve` that re-indexes when a runbook file changes,
+   for teams that edit runbooks during an incident.
 3. Per-team runbook packs, so a platform team and an app team can keep
    separate folders and query them together with the source still clear.
 
