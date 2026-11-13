@@ -30,4 +30,6 @@ def test_cli_list(capsys):
     assert rc == 0
     out = capsys.readouterr().out
     assert "crashloopbackoff.md" in out
-    assert "5 runbooks" in out
+    assert "canary-deployment-checks.md" in out
+    assert "queue-backlog-triage.md" in out
+    assert "7 runbooks, 33 sections indexed" in out

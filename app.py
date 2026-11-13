@@ -3,9 +3,10 @@
 Install the extra and run it:
 
     pip install -e ".[api]"
-    uvicorn app:app
+    python -m runbook_assistant serve --port 8000
 
-Set RUNBOOKS_DIR to point at a different folder of runbooks.
+Or serve this module directly with `uvicorn app:app`. Set RUNBOOKS_DIR to
+point at a different folder of runbooks.
 """
 
 from __future__ import annotations

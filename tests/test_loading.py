@@ -47,10 +47,12 @@ def test_load_sections_from_bundled_runbooks():
     sections = load_sections(runbooks_dir)
     sources = {s.source for s in sections}
     assert sources == {
+        "canary-deployment-checks.md",
         "crashloopbackoff.md",
         "database-connection-saturation.md",
         "expired-certificates.md",
         "node-disk-pressure.md",
+        "queue-backlog-triage.md",
         "rollback-deployment.md",
     }
-    assert len(sections) >= 20
+    assert len(sections) == 33

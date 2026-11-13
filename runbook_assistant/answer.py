@@ -15,7 +15,10 @@ from runbook_assistant.index import BM25Index
 MIN_TOP_SCORE = 1.5
 
 # Sections scoring far below the best match are noise; leave them out.
-MIN_RELATIVE_SCORE = 0.4
+# Tuned at 0.45 once the corpus grew: a passing mention of CrashLoopBackOff
+# in the canary runbook scored 0.42 of the top match and read as noise next
+# to the real answer.
+MIN_RELATIVE_SCORE = 0.45
 
 REFUSAL = (
     "The runbooks I have do not cover that. I would rather say so than guess: "

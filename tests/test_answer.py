@@ -33,6 +33,26 @@ def test_certificate_question_hits_certificate_runbook(index):
     assert answer.excerpts[0].source == "expired-certificates.md"
 
 
+def test_canary_question_hits_canary_runbook(index):
+    answer = answer_question(
+        index,
+        "The canary deployment has a much higher error rate than the stable "
+        "version. Should I stop the canary rollout?",
+    )
+    assert answer.answered
+    assert answer.excerpts[0].source == "canary-deployment-checks.md"
+
+
+def test_backlog_question_hits_queue_runbook(index):
+    answer = answer_question(
+        index,
+        "The queue backlog keeps growing and the consumers are falling "
+        "behind. How do I check consumer lag?",
+    )
+    assert answer.answered
+    assert answer.excerpts[0].source == "queue-backlog-triage.md"
+
+
 def test_unrelated_question_is_refused(index):
     answer = answer_question(index, "How do I bake a sourdough loaf with a crisp crust?")
     assert not answer.answered

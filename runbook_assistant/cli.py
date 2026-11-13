@@ -1,9 +1,10 @@
-"""Command line entry point: `python -m runbook_assistant ask|list`."""
+"""Command line entry point: `python -m runbook_assistant ask|list|serve`."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -37,7 +38,43 @@ def build_parser() -> argparse.ArgumentParser:
 
     list_cmd = sub.add_parser("list", help="show indexed runbooks and section counts")
     _add_runbooks_flag(list_cmd)
+
+    serve = sub.add_parser("serve", help="run the HTTP API (needs the api extra)")
+    _add_runbooks_flag(serve)
+    serve.add_argument("--host", default="127.0.0.1", help="interface to bind (default: %(default)s)")
+    serve.add_argument("--port", type=int, default=8000, help="port to listen on (default: %(default)s)")
     return parser
+
+
+MISSING_API_EXTRA = (
+    "The serve command needs the api extra (FastAPI and uvicorn), which is "
+    "not installed. Install it with:\n"
+    '    pip install -e ".[api]"\n'
+    "The ask and list commands work without it."
+)
+
+
+def _serve(args: argparse.Namespace) -> int:
+    try:
+        import uvicorn
+    except ImportError:
+        print(MISSING_API_EXTRA, file=sys.stderr)
+        return 1
+
+    # The FastAPI adapter lives in app.py at the project root, next to the
+    # package, and reads RUNBOOKS_DIR when it is imported.
+    project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    os.environ["RUNBOOKS_DIR"] = str(Path(args.runbooks))
+    try:
+        from app import app
+    except ImportError:
+        print(MISSING_API_EXTRA, file=sys.stderr)
+        return 1
+
+    uvicorn.run(app, host=args.host, port=args.port)
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -60,6 +97,9 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(answer.to_text())
         return 0
+
+    if args.command == "serve":
+        return _serve(args)
 
     return 2
 
