@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "runbook-assistant"
+version = "0.1.0"
+description = "Answer platform questions from a folder of runbooks, with citations."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.optional-dependencies]
+api = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+]
+dev = [
+    "pytest>=8",
+]
+
+[project.scripts]
+runbook-assistant = "runbook_assistant.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["runbook_assistant*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
