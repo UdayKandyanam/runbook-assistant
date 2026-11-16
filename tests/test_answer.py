@@ -53,6 +53,26 @@ def test_backlog_question_hits_queue_runbook(index):
     assert answer.excerpts[0].source == "queue-backlog-triage.md"
 
 
+def test_pod_restarts_question_hits_crashloop_runbook(index):
+    answer = answer_question(index, "My pod keeps restarting and never becomes ready. What should I check first?")
+    assert answer.answered
+    assert answer.excerpts[0].source == "crashloopbackoff.md"
+
+
+def test_oomkilled_question_hits_crashloop_runbook(index):
+    # Before synonym handling this question scored the canary runbook
+    # highest, because "oomkilled" matched nothing in the corpus.
+    answer = answer_question(index, "The container was OOMKilled. What should I check?")
+    assert answer.answered
+    assert answer.excerpts[0].source == "crashloopbackoff.md"
+
+
+def test_tls_cert_question_hits_certificate_runbook(index):
+    answer = answer_question(index, "Our TLS cert expired last night. How do I check the expiry date?")
+    assert answer.answered
+    assert answer.excerpts[0].source == "expired-certificates.md"
+
+
 def test_unrelated_question_is_refused(index):
     answer = answer_question(index, "How do I bake a sourdough loaf with a crisp crust?")
     assert not answer.answered

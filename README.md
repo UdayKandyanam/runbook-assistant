@@ -30,6 +30,14 @@ the rest in context. When the best score is too low, or the trailing
 matches are far weaker than the best one, the tool refuses: the runbooks do
 not cover that.
 
+Questions rarely use the exact words a runbook uses. A small hand kept map
+in `runbook_assistant/index.py` expands a question before scoring:
+"restarting" also counts as CrashLoopBackOff, "cert" and "tls" also count
+as certificate, and "oomkilled" also counts as memory and killed. Expanded
+words count less than the words in the question itself (a quarter for near
+words, a half for short forms), so a section written in the words of the
+question still ranks first.
+
 ## Quick start
 
 You need Python 3.10 or newer. The core has no dependencies.
@@ -102,6 +110,25 @@ From crashloopbackoff.md > First checks:
 
 For checkout-api, the usual culprit after a deploy is a config change: a
 missing environment variable or a ConfigMap key that was renamed.
+```
+
+### Pod restarts, asked in other words
+
+The question below never says CrashLoopBackOff. The expansion map carries
+it to the right runbook:
+
+```
+$ python -m runbook_assistant ask "My pod keeps restarting and never becomes ready. What should I check first?"
+
+From crashloopbackoff.md > Symptoms:
+A pod sits in CrashLoopBackOff and the restart count keeps climbing. The
+deployment behind it never becomes ready, so traffic keeps going to the old
+pods (or nowhere, on a first deploy). `kubectl get pods` shows the pod age
+growing while the restart count grows with it.
+
+CrashLoopBackOff is a symptom, not a cause. The container starts, exits, and
+Kubernetes waits longer between each retry. Your job is to find out why the
+container exits.
 ```
 
 ### Expired certificate
@@ -197,20 +224,20 @@ costs more than no answer.
 
 ## Limits
 
-BM25 matches words, not meaning. A question phrased with none of the
-runbook's vocabulary will score low even when a relevant section exists,
-and the tool will refuse. It also cannot combine steps from two procedures
-into one plan; it returns the sections, and stitching them together is
-still your job. Section quality is runbook quality. A vague runbook gives
-a vague answer with a very precise citation.
+BM25 matches words, not meaning. The expansion map covers the short forms
+and near words on its list, and nothing beyond that list. A question
+phrased with none of the runbook's vocabulary, and none of the map's, will
+score low even when a relevant section exists, and the tool will refuse.
+It also cannot combine steps from two procedures into one plan; it returns
+the sections, and stitching them together is still your job. Section
+quality is runbook quality. A vague runbook gives a vague answer with a
+very precise citation.
 
 ## Roadmap
 
-1. Synonym and abbreviation handling for common ops terms, so "OOM" finds
-   the section that talks about memory limits.
-2. A watch mode for `serve` that re-indexes when a runbook file changes,
+1. A watch mode for `serve` that re-indexes when a runbook file changes,
    for teams that edit runbooks during an incident.
-3. Per-team runbook packs, so a platform team and an app team can keep
+2. Per-team runbook packs, so a platform team and an app team can keep
    separate folders and query them together with the source still clear.
 
 ## License
