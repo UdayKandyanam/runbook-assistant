@@ -85,6 +85,14 @@ def answer_question(index: BM25Index, question: str, top_k: int = 3) -> Answer:
         return Answer(question=question, answered=False, excerpts=[])
     floor = results[0][1] * MIN_RELATIVE_SCORE
     results = [pair for pair in results if pair[1] >= floor]
+    # Trailing excerpts stay in the runbook the best match came from. A
+    # section from another runbook can clear the floor on a passing mention
+    # alone: the canary runbook has a whole section on rolling back, and the
+    # disk pressure runbook mentions containers, so both showed up in
+    # answers they did not belong in. One answer quotes one procedure; a
+    # question about another runbook gets its own answer.
+    top_source = results[0][0].source
+    results = [pair for pair in results if pair[0].source == top_source]
     excerpts = [
         Excerpt(source=section.source, heading=section.heading, text=_trim(section.text), score=score)
         for section, score in results

@@ -30,6 +30,14 @@ the rest in context. When the best score is too low, or the trailing
 matches are far weaker than the best one, the tool refuses: the runbooks do
 not cover that.
 
+One answer quotes one runbook: the trailing excerpts come from the same
+file as the best match. Other runbooks mention most topics in passing (the
+canary runbook has a section on rolling back, the disk pressure runbook
+mentions containers), and those sections scored well enough to show up as
+extra excerpts in answers they did not belong in. Keeping an answer inside
+one procedure reads cleaner, and a question about another runbook gets its
+own answer.
+
 Questions rarely use the exact words a runbook uses. A small hand kept map
 in `runbook_assistant/index.py` expands a question before scoring:
 "restarting" also counts as CrashLoopBackOff, "cert" and "tls" also count
