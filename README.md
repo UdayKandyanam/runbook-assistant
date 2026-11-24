@@ -212,6 +212,16 @@ dumping a traceback. Serving `app:app` with uvicorn directly works too.
 
 Set `RUNBOOKS_DIR` to serve a different folder of runbooks.
 
+The API picks up runbook changes without a restart. On each request it
+hashes the markdown files in the folder, and when an edit, an addition,
+or a removal changes that hash set, it loads and indexes the folder
+again before answering. Hashing the contents rather than the timestamps
+means a save that changes nothing costs no reload, and an edit made
+during an incident is live on the next request. The check lives in
+`runbook_assistant/reloading.py` and uses only the standard library, so
+the core stays dependency free. The `ask` and `list` commands read the
+folder once per run, as before.
+
 ## Design choices
 
 **Standard library only for the core.** Runbooks live on jump hosts and
@@ -243,9 +253,7 @@ very precise citation.
 
 ## Roadmap
 
-1. A watch mode for `serve` that re-indexes when a runbook file changes,
-   for teams that edit runbooks during an incident.
-2. Per-team runbook packs, so a platform team and an app team can keep
+1. Per-team runbook packs, so a platform team and an app team can keep
    separate folders and query them together with the source still clear.
 
 ## License

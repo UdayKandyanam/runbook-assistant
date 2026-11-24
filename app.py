@@ -6,7 +6,8 @@ Install the extra and run it:
     python -m runbook_assistant serve --port 8000
 
 Or serve this module directly with `uvicorn app:app`. Set RUNBOOKS_DIR to
-point at a different folder of runbooks.
+point at a different folder of runbooks. Edits, additions, and removals in
+that folder are picked up on the next request, with no restart.
 """
 
 from __future__ import annotations
@@ -18,13 +19,11 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 from runbook_assistant.answer import answer_question
-from runbook_assistant.index import BM25Index
-from runbook_assistant.loading import load_runbooks, load_sections
+from runbook_assistant.reloading import ReloadingIndex
 
 RUNBOOKS_DIR = Path(os.environ.get("RUNBOOKS_DIR", Path(__file__).parent / "runbooks"))
 
-_runbooks = load_runbooks(RUNBOOKS_DIR)
-_index = BM25Index(load_sections(RUNBOOKS_DIR))
+_store = ReloadingIndex(RUNBOOKS_DIR)
 
 app = FastAPI(title="Runbook Assistant")
 
@@ -38,11 +37,11 @@ class AskRequest(BaseModel):
 def health() -> dict:
     return {
         "status": "ok",
-        "runbooks": len(_runbooks),
-        "sections": len(_index),
+        "runbooks": _store.runbook_count,
+        "sections": _store.section_count,
     }
 
 
 @app.post("/ask")
 def ask(request: AskRequest) -> dict:
-    return answer_question(_index, request.question, top_k=request.top_k).to_dict()
+    return answer_question(_store.index, request.question, top_k=request.top_k).to_dict()
